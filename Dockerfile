@@ -10,13 +10,15 @@ RUN apt-get update && \
 RUN pip install --no-cache-dir --upgrade "conan>=2.0" kthbuild
 
 # Knuth Conan config (remotes, profiles)
-RUN conan config install https://github.com/k-nuth/ci-utils/raw/master/conan/config2023.zip
+RUN conan config install https://github.com/k-nuth/ci-utils/raw/master/conan/config2023.zip && \
+    conan profile detect --force && \
+    cat /root/.conan2/profiles/default
 
 ARG KTH_VERSION=0.80.0
 
-# Pull the prebuilt Knuth binary into /opt/kth/
+# Pull the prebuilt Knuth binary into /opt/kth/ (allow building anything missing).
 WORKDIR /opt
-RUN conan install --requires=kth/${KTH_VERSION} --update --deployer=direct_deploy -g VirtualRunEnv \
+RUN conan install --requires=kth/${KTH_VERSION} --update --build=missing --deployer=direct_deploy -g VirtualRunEnv \
     && ls -la direct_deploy/ \
     && find direct_deploy -name 'kth' -type f -executable
 
