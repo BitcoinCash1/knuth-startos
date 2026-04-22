@@ -2,7 +2,6 @@ import { sdk } from './sdk'
 import {
   Network,
   configPath,
-  dbDir,
   logDir,
   logDebugFile,
   networkPorts,
@@ -102,14 +101,22 @@ export const main = sdk.setupMain(async ({ effects }) => {
       subcontainer: null,
       exec: {
         fn: async () => {
+          // IMPORTANT: do NOT pre-create dbDir. kth's `verify_directory()`
+          // treats any existing directory as an already-initialized chain
+          // and skips `do_initchain`; that leads to "Error configuring LMDB
+          // environment" when the node opens an empty LMDB dir. Only create
+          // rootDir and log directories here; kth will create dbDir itself
+          // during initchain on first run.
           try {
-            for (const d of [rootDir, dbDir, logDir, `${logDir}/archive`]) {
+            for (const d of [rootDir, logDir, `${logDir}/archive`]) {
               const mkdirRes = await kthSub.exec(['mkdir', '-p', d])
               if (mkdirRes.exitCode !== 0) {
                 console.warn(`nocow: mkdir failed for ${d}`)
               }
             }
-            const chattrRes = await kthSub.exec(['chattr', '-R', '+C', rootDir])
+            // Set NoCOW on rootDir; kth-created dbDir will inherit the
+            // attribute when created under it (btrfs semantics).
+            const chattrRes = await kthSub.exec(['chattr', '+C', rootDir])
             if (chattrRes.exitCode !== 0) {
               console.warn(
                 `nocow: chattr not applied for ${rootDir}; continuing startup`,
