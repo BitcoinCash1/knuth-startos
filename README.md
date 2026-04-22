@@ -10,8 +10,7 @@ high-performance, C++23 **Bitcoin Cash** full node implementation.
 StartOS package ID: `knuth`.
 
 > Knuth is developed by the [k-nuth](https://github.com/k-nuth) team. It is an
-> independent BCH node implementation, **not** a BCHN fork or BCHN-compatible
-> flavor. It has its own codebase, database format (LMDB), configuration
+> independent BCH node implementation. It has its own codebase, database format (LMDB), configuration
 > (`kth.cfg`), and on-disk layout.
 
 ## About Knuth
