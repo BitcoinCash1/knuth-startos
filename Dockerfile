@@ -9,9 +9,13 @@ RUN apt-get update && \
 # Conan + Knuth build helper
 RUN pip install --no-cache-dir --upgrade "conan>=2.0" kthbuild
 
-# Knuth Conan config (remotes, profiles)
-RUN conan config install https://github.com/k-nuth/ci-utils/raw/master/conan/config2023.zip && \
+# Knuth Conan config (remotes, profiles). The upstream config2023.zip is
+# Conan-1 format; Conan 2 ignores its remotes.txt, so we explicitly add
+# the Knuth Artifactory remote after detecting a default profile.
+RUN conan config install https://github.com/k-nuth/ci-utils/raw/master/conan/config2023.zip || true; \
     conan profile detect --force && \
+    conan remote add --force kth https://packages.kth.cash/api/ && \
+    conan remote list && \
     cat /root/.conan2/profiles/default
 
 ARG KTH_VERSION=0.80.0
