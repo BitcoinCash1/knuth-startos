@@ -75,7 +75,7 @@ export const peersConfig = sdk.Action.withInput(
         ...(input.channel_expiration_minutes != null && {
           channel_expiration_minutes: input.channel_expiration_minutes,
         }),
-        hosts_file: input.hosts_file,
+        ...(input.hosts_file && { hosts_file: input.hosts_file }),
         ...(input.user_agent && { user_agent: input.user_agent }),
       },
     })

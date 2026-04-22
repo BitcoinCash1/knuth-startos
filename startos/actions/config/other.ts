@@ -90,7 +90,9 @@ export const otherConfig = sdk.Action.withInput(
         },
         log: {
           verbose: input.verbose_logging,
-          rotation_size: input.log_rotation_size,
+          ...(input.log_rotation_size != null && {
+            rotation_size: input.log_rotation_size,
+          }),
         },
       }),
       storeJson.merge(effects, {
