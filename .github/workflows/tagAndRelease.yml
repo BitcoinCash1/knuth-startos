@@ -22,10 +22,17 @@ jobs:
           - arch: x86_64
             runner: ubuntu-24.04
             target: x86
+            experimental: false
           - arch: aarch64
             runner: ubuntu-24.04-arm
             target: arm
+            experimental: false
+          - arch: riscv64
+            runner: ubuntu-24.04
+            target: riscv
+            experimental: true
     runs-on: ${{ matrix.runner }}
+    continue-on-error: ${{ matrix.experimental }}
     timeout-minutes: 360
     steps:
       - name: Setup build environment
@@ -64,6 +71,7 @@ jobs:
 
   release:
     needs: build
+    if: ${{ !cancelled() && needs.build.result != 'failure' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Setup build environment
