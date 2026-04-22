@@ -24,6 +24,7 @@ ARG KTH_VERSION=0.80.0
 # Pull the prebuilt Knuth binary into /opt/kth/ (allow building anything missing).
 WORKDIR /opt
 RUN conan install --requires=kth/${KTH_VERSION} --update --build=missing --deployer=direct_deploy -g VirtualRunEnv \
+        -s compiler.cppstd=23 -s build_type=Release \
     && ls -la direct_deploy/ \
     && find direct_deploy -name 'kth' -type f -executable
 
