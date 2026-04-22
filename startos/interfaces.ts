@@ -1,0 +1,36 @@
+import { sdk } from './sdk'
+import { networkPorts, peerInterfaceId, Network } from './utils'
+import { storeJson } from './fileModels/store.json'
+
+export const setInterfaces = sdk.setupInterfaces(async ({ effects }) => {
+  const store = await storeJson.read().const(effects)
+  const network: Network =
+    store?.network === 'chipnet' || store?.network === 'testnet4'
+      ? store.network
+      : 'mainnet'
+  const { peer: peerPort } = networkPorts[network]
+  const receipts = []
+
+  // ── P2P ──────────────────────────────────────────────────────────────
+  const peerMulti = sdk.MultiHost.of(effects, 'peer')
+  const peerOrigin = await peerMulti.bindPort(peerPort, {
+    protocol: null,
+    preferredExternalPort: peerPort,
+    addSsl: null,
+    secure: { ssl: false },
+  })
+  const peer = sdk.createInterface(effects, {
+    name: 'Peer Interface',
+    id: peerInterfaceId,
+    description: 'Peer-to-peer connections on the Bitcoin Cash network',
+    type: 'p2p',
+    masked: false,
+    schemeOverride: { ssl: null, noSsl: null },
+    username: null,
+    path: '',
+    query: {},
+  })
+  receipts.push(await peerOrigin.export([peer]))
+
+  return receipts
+})
