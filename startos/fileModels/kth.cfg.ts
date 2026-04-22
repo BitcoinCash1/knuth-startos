@@ -212,7 +212,7 @@ export const fullConfigSpec = sdk.InputSpec.of({
     name: 'Enable UPnP',
     description:
       '[network.enable_upnp] Request a NAT port mapping for inbound P2P connectivity.',
-    default: false,
+    default: true,
   }),
   channel_handshake_seconds: sdk.Value.number({
     name: 'Handshake Timeout (seconds)',
@@ -330,7 +330,7 @@ export const fullConfigSpec = sdk.InputSpec.of({
     name: 'High-Priority Validation',
     description:
       '[blockchain.priority] Give the validation thread pool elevated scheduling priority.',
-    default: false,
+    default: true,
   }),
   use_libconsensus: sdk.Value.toggle({
     name: 'Use libconsensus',

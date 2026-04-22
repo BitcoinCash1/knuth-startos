@@ -36,7 +36,7 @@ export const peersConfig = sdk.Action.withInput(
       manual_attempt_limit: c?.network?.manual_attempt_limit ?? null,
       connect_batch_size: c?.network?.connect_batch_size ?? null,
       host_pool_capacity: c?.network?.host_pool_capacity ?? null,
-      enable_upnp: c?.network?.enable_upnp ?? false,
+      enable_upnp: c?.network?.enable_upnp ?? true,
       channel_handshake_seconds: c?.network?.channel_handshake_seconds ?? null,
       channel_heartbeat_minutes: c?.network?.channel_heartbeat_minutes ?? null,
       channel_inactivity_minutes:

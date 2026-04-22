@@ -36,7 +36,7 @@ export const otherConfig = sdk.Action.withInput(
     ])
     return {
       blockchain_cores: c?.blockchain?.cores ?? 0,
-      blockchain_priority: c?.blockchain?.priority ?? false,
+      blockchain_priority: c?.blockchain?.priority ?? true,
       use_libconsensus: c?.blockchain?.use_libconsensus ?? false,
       compact_blocks_high_bandwidth:
         c?.node?.compact_blocks_high_bandwidth ?? true,

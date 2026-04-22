@@ -22,6 +22,7 @@ export const seedFiles = sdk.setupOnInit(async (effects) => {
         threads: 2,
         inbound_connections: 125,
         outbound_connections: 8,
+        enable_upnp: true,
         hosts_file: hostsCachePath,
       },
       database: {
@@ -29,6 +30,7 @@ export const seedFiles = sdk.setupOnInit(async (effects) => {
       },
       blockchain: {
         cores: 0,
+        priority: true,
       },
       node: {
         relay_transactions: true,
