@@ -356,7 +356,7 @@ export const fullConfigSpec = sdk.InputSpec.of({
     name: 'Compact Blocks (High-Bandwidth)',
     description:
       '[node.compact_blocks_high_bandwidth] Advertise high-bandwidth compact block relay to peers.',
-    default: false,
+    default: true,
   }),
   block_poll_seconds: sdk.Value.number({
     name: 'Block Poll Interval (seconds)',

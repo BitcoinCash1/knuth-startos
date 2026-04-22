@@ -16,6 +16,18 @@ export { mainMounts }
 export const main = sdk.setupMain(async ({ effects }) => {
   console.log('Starting Knuth (kth)!')
 
+  // Force always-on node flags every boot so upgrades from older installs
+  // (and manual edits) cannot disable transaction relay, mempool refresh,
+  // double-spend proofs, or high-bandwidth compact blocks.
+  await kthCfg.merge(effects, {
+    node: {
+      relay_transactions: true,
+      refresh_transactions: true,
+      compact_blocks_high_bandwidth: true,
+      ds_proofs_enabled: true,
+    },
+  })
+
   const conf = await kthCfg.read().const(effects)
   const store = await storeJson.read().once()
   const network: Network =

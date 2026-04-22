@@ -32,6 +32,9 @@ export const seedFiles = sdk.setupOnInit(async (effects) => {
       },
       node: {
         relay_transactions: true,
+        refresh_transactions: true,
+        compact_blocks_high_bandwidth: true,
+        ds_proofs_enabled: true,
       },
       log: {
         archive_directory: `${logDir}/archive`,

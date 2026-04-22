@@ -17,12 +17,9 @@ export const otherConfig = sdk.Action.withInput(
     blockchain_cores: true,
     blockchain_priority: true,
     use_libconsensus: true,
-    relay_transactions: true,
-    refresh_transactions: true,
     compact_blocks_high_bandwidth: true,
     block_poll_seconds: true,
     transaction_pool_capacity: true,
-    ds_proofs_enabled: true,
     db_max_size: true,
     reorg_pool_limit: true,
     safe_mode: true,
@@ -41,13 +38,10 @@ export const otherConfig = sdk.Action.withInput(
       blockchain_cores: c?.blockchain?.cores ?? 0,
       blockchain_priority: c?.blockchain?.priority ?? false,
       use_libconsensus: c?.blockchain?.use_libconsensus ?? false,
-      relay_transactions: c?.node?.relay_transactions ?? true,
-      refresh_transactions: c?.node?.refresh_transactions ?? true,
       compact_blocks_high_bandwidth:
-        c?.node?.compact_blocks_high_bandwidth ?? false,
+        c?.node?.compact_blocks_high_bandwidth ?? true,
       block_poll_seconds: c?.node?.block_poll_seconds ?? null,
       transaction_pool_capacity: c?.node?.transaction_pool_capacity ?? null,
-      ds_proofs_enabled: c?.node?.ds_proofs_enabled ?? true,
       db_max_size: c?.database?.db_max_size ?? null,
       reorg_pool_limit: c?.database?.reorg_pool_limit ?? null,
       safe_mode: c?.database?.safe_mode ?? false,
@@ -67,8 +61,8 @@ export const otherConfig = sdk.Action.withInput(
           use_libconsensus: input.use_libconsensus,
         },
         node: {
-          relay_transactions: input.relay_transactions,
-          refresh_transactions: input.refresh_transactions,
+          relay_transactions: true,
+          refresh_transactions: true,
           compact_blocks_high_bandwidth: input.compact_blocks_high_bandwidth,
           ...(input.block_poll_seconds != null && {
             block_poll_seconds: input.block_poll_seconds,
@@ -76,7 +70,7 @@ export const otherConfig = sdk.Action.withInput(
           ...(input.transaction_pool_capacity != null && {
             transaction_pool_capacity: input.transaction_pool_capacity,
           }),
-          ds_proofs_enabled: input.ds_proofs_enabled,
+          ds_proofs_enabled: true,
         },
         database: {
           ...(input.db_max_size != null && { db_max_size: input.db_max_size }),
