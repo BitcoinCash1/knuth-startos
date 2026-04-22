@@ -26,7 +26,6 @@ export const seedFiles = sdk.setupOnInit(async (effects) => {
       },
       database: {
         directory: dbDir,
-        flush_writes: false,
       },
       blockchain: {
         cores: 0,

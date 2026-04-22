@@ -31,7 +31,6 @@ export const kthCfgShape = z
     database: z
       .object({
         directory: z.string().optional(),
-        flush_writes: z.boolean().optional(),
       })
       .optional(),
     blockchain: z
