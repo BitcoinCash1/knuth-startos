@@ -29,7 +29,8 @@ RUN conan install --requires=kth/${KTH_VERSION} --update --build=missing --deplo
     && find direct_deploy -name 'kth' -type f -executable
 
 # ── Runtime stage ───────────────────────────────────────────────────
-FROM debian:bookworm-slim
+# trixie is needed for glibc>=2.38 and libstdc++ GLIBCXX_3.4.32 which kth requires.
+FROM debian:trixie-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
