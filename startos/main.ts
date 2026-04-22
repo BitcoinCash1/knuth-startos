@@ -73,17 +73,33 @@ export const main = sdk.setupMain(async ({ effects }) => {
     }
   }
 
-  // Very rough height extraction: look for a "height" or "block" token in the
-  // last lines of the log. Knuth log format is not formally documented; we
-  // scan for common patterns and fall back to "process alive" if none match.
+  // Rough height extraction from debug log. Knuth's log format is not
+  // formally documented; we scan common patterns in reverse order so the
+  // newest line wins.
   function extractHeightFromLog(text: string): number | null {
-    const heightRe = /height[^\d]{0,6}(\d{3,})/i
-    const blockRe = /block[^\d]{0,6}(\d{3,})/i
+    const patterns = [
+      /\bheight[^\d]{0,8}(\d{4,})/i,
+      /\bblock[^\d]{0,8}(\d{4,})/i,
+      /\btop[^\d]{0,8}(\d{4,})/i,
+    ]
     for (const line of text.split(/\r?\n/).reverse()) {
-      const m = heightRe.exec(line) || blockRe.exec(line)
-      if (m) return Number(m[1])
+      for (const re of patterns) {
+        const m = re.exec(line)
+        if (m) {
+          const n = Number(m[1])
+          if (Number.isFinite(n) && n > 0) return n
+        }
+      }
     }
     return null
+  }
+
+  // Rough estimate of current BCH chain tip: genesis 2009-01-03 @ ~10 min/block.
+  // Used for progress % since Knuth exposes no RPC.
+  function estimatedTip(): number {
+    const GENESIS_TS = 1231006505
+    const now = Math.floor(Date.now() / 1000)
+    return Math.max(100_000, Math.floor((now - GENESIS_TS) / 600))
   }
 
   async function processAlive(): Promise<boolean> {
@@ -93,6 +109,38 @@ export const main = sdk.setupMain(async ({ effects }) => {
       return Number.isFinite(n) && n > 0
     } catch {
       return false
+    }
+  }
+
+  // Count established TCP peer connections on the kth P2P port using `ss`.
+  // Returns [total, inbound, outbound] or null on error.
+  async function countPeers(
+    port: number,
+  ): Promise<{ total: number; inbound: number; outbound: number } | null> {
+    try {
+      const res = await kthSub.exec([
+        'sh',
+        '-c',
+        `ss -ntnH state established 2>/dev/null || true`,
+      ])
+      const out = (res.stdout || '').toString()
+      if (!out.trim()) return null
+      let inbound = 0
+      let outbound = 0
+      for (const line of out.split(/\r?\n/)) {
+        // ss -ntn columns: Recv-Q Send-Q Local-Address:Port Peer-Address:Port
+        const parts = line.trim().split(/\s+/)
+        if (parts.length < 4) continue
+        const local = parts[2]
+        const peer = parts[3]
+        const localPort = Number(local.split(':').pop())
+        const peerPortNum = Number(peer.split(':').pop())
+        if (localPort === port) inbound += 1
+        else if (peerPortNum === port) outbound += 1
+      }
+      return { total: inbound + outbound, inbound, outbound }
+    } catch {
+      return null
     }
   }
 
@@ -159,30 +207,53 @@ export const main = sdk.setupMain(async ({ effects }) => {
       ready: {
         display: 'Blockchain Sync',
         fn: async () => {
-          const log = await tailLog(400)
+          const log = await tailLog(600)
           if (!log) {
             return { message: 'Waiting for sync info', result: 'loading' }
           }
           const height = extractHeightFromLog(log)
           if (height == null) {
-            // Height unknown but log writing → node is up but early in sync.
-            return { message: 'Sync status unavailable from logs', result: 'loading' }
+            return {
+              message: 'Sync status unavailable from logs',
+              result: 'loading',
+            }
           }
-          // BCH mainnet is around ~890k+ blocks (2026). If we see a height
-          // within 2000 of rough current tip we call it synced. Otherwise
-          // "loading". Rough tip calculation: 2016-01-03 genesis to now @ ~10min.
-          const roughTipLowerBound = Math.floor(
-            (Date.now() / 1000 - 1609459200) / 600 + 660_000,
-          )
-          if (height >= roughTipLowerBound - 2000) {
+          const tip = estimatedTip()
+          const pct = Math.min(99.99, (height / tip) * 100)
+          if (height >= tip - 2000) {
             return {
               message: `Synced — block ${height.toLocaleString()}`,
               result: 'success',
             }
           }
           return {
-            message: `Syncing blocks... height ${height.toLocaleString()}`,
+            message: `Syncing blocks... ${pct.toFixed(2)}% (block ${height.toLocaleString()})`,
             result: 'loading',
+          }
+        },
+      },
+      requires: ['primary'],
+    })
+    .addHealthCheck('peer-connections', {
+      ready: {
+        display: 'Peer Connections',
+        fn: async () => {
+          const counts = await countPeers(peerPort)
+          if (!counts) {
+            return {
+              message: 'Unable to query peers',
+              result: 'loading',
+            }
+          }
+          if (counts.total === 0) {
+            return {
+              message: 'No peer connections established yet',
+              result: 'loading',
+            }
+          }
+          return {
+            message: `${counts.total} peers (${counts.outbound} outbound, ${counts.inbound} inbound)`,
+            result: 'success',
           }
         },
       },
@@ -200,32 +271,6 @@ export const main = sdk.setupMain(async ({ effects }) => {
         },
       },
       requires: ['sync-progress'],
-    })
-    .addHealthCheck('peer-connections', {
-      ready: {
-        display: 'Peer Connections',
-        fn: async () => {
-          const log = await tailLog(400)
-          if (!log) {
-            return { message: 'Unable to query peers', result: 'loading' }
-          }
-          // Heuristic: count lines mentioning "connected" or "handshake" peers
-          const peerRe = /peer[^\n]*\b(connected|handshake|height)\b/gi
-          const matches = log.match(peerRe) ?? []
-          const count = matches.length
-          if (count === 0) {
-            return {
-              message: 'No peer activity in recent logs',
-              result: 'loading',
-            }
-          }
-          return {
-            message: `Active peer activity (${count} recent log events)`,
-            result: 'success',
-          }
-        },
-      },
-      requires: ['primary'],
     })
     .addHealthCheck('tor', {
       ready: {

@@ -40,6 +40,7 @@ RUN apt-get update && \
         libatomic1 \
         libgomp1 \
         netcat-openbsd \
+        iproute2 \
         e2fsprogs \
         procps && \
     rm -rf /var/lib/apt/lists/*

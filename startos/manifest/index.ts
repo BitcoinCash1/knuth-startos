@@ -23,7 +23,8 @@ export const manifest = setupManifest({
   images: {
     knuth: {
       source: { dockerBuild: {} },
-      arch: ['x86_64'],
+      arch: ['x86_64', 'aarch64'],
+      emulateMissingAs: 'x86_64',
     },
   },
   alerts: {

@@ -25,22 +25,47 @@ export const kthCfgShape = z
         threads: z.number().int().optional(),
         inbound_connections: z.number().int().optional(),
         outbound_connections: z.number().int().optional(),
+        manual_attempt_limit: z.number().int().optional(),
+        connect_batch_size: z.number().int().optional(),
+        inbound_port: z.number().int().optional(),
+        identifier: z.number().int().optional(),
+        channel_handshake_seconds: z.number().int().optional(),
+        channel_heartbeat_minutes: z.number().int().optional(),
+        channel_inactivity_minutes: z.number().int().optional(),
+        channel_expiration_minutes: z.number().int().optional(),
+        channel_germination_seconds: z.number().int().optional(),
+        host_pool_capacity: z.number().int().optional(),
+        enable_upnp: z.boolean().optional(),
         hosts_file: z.string().optional(),
+        user_agent: z.string().optional(),
       })
       .optional(),
     database: z
       .object({
         directory: z.string().optional(),
+        db_max_size: z.number().int().optional(),
+        reorg_pool_limit: z.number().int().optional(),
+        safe_mode: z.boolean().optional(),
+        cache_capacity: z.number().int().optional(),
       })
       .optional(),
     blockchain: z
       .object({
         cores: z.number().int().optional(),
+        priority: z.boolean().optional(),
+        use_libconsensus: z.boolean().optional(),
+        block_buffer_limit: z.number().int().optional(),
+        first_boot_hard_ram: z.number().int().optional(),
       })
       .optional(),
     node: z
       .object({
         relay_transactions: z.boolean().optional(),
+        refresh_transactions: z.boolean().optional(),
+        compact_blocks_high_bandwidth: z.boolean().optional(),
+        block_poll_seconds: z.number().int().optional(),
+        transaction_pool_capacity: z.number().int().optional(),
+        ds_proofs_enabled: z.boolean().optional(),
       })
       .optional(),
     log: z
@@ -113,11 +138,14 @@ export const kthCfg = FileHelper.raw<KthCfg>(
   (data) => kthCfgShape.parse(data),
 )
 
-// User-facing config spec (Advanced)
+// User-facing config spec (Advanced). Fields map to [section] keys in kth.cfg.
+// Unsupported or informational-only fields are clearly labelled — Knuth
+// silently ignores unknown keys so it is safe to surface them.
 export const fullConfigSpec = sdk.InputSpec.of({
+  // ── Network ───────────────────────────────────────────────────────────
   threads: sdk.Value.number({
     name: 'Network Threads',
-    description: 'Number of threads used by the P2P network layer.',
+    description: '[network.threads] Threads used by the P2P network layer.',
     required: true,
     default: 2,
     min: 1,
@@ -127,7 +155,8 @@ export const fullConfigSpec = sdk.InputSpec.of({
   }),
   outbound_connections: sdk.Value.number({
     name: 'Outbound Peer Connections',
-    description: 'Maximum number of outbound peer connections.',
+    description:
+      '[network.outbound_connections] Maximum number of outbound peer connections.',
     required: true,
     default: 8,
     min: 0,
@@ -137,7 +166,8 @@ export const fullConfigSpec = sdk.InputSpec.of({
   }),
   inbound_connections: sdk.Value.number({
     name: 'Inbound Peer Connections',
-    description: 'Maximum number of inbound peer connections.',
+    description:
+      '[network.inbound_connections] Maximum number of inbound peer connections accepted.',
     required: true,
     default: 125,
     min: 0,
@@ -145,10 +175,150 @@ export const fullConfigSpec = sdk.InputSpec.of({
     integer: true,
     units: null,
   }),
+  manual_attempt_limit: sdk.Value.number({
+    name: 'Manual Attempt Limit',
+    description:
+      '[network.manual_attempt_limit] Times to retry a manually supplied peer address before giving up.',
+    required: false,
+    default: null,
+    min: 0,
+    max: 1000,
+    integer: true,
+    units: null,
+  }),
+  connect_batch_size: sdk.Value.number({
+    name: 'Connect Batch Size',
+    description:
+      '[network.connect_batch_size] Number of outbound connection attempts made concurrently.',
+    required: false,
+    default: null,
+    min: 1,
+    max: 64,
+    integer: true,
+    units: null,
+  }),
+  host_pool_capacity: sdk.Value.number({
+    name: 'Host Pool Capacity',
+    description:
+      '[network.host_pool_capacity] Maximum entries stored in the peer-address cache.',
+    required: false,
+    default: null,
+    min: 0,
+    max: 100000,
+    integer: true,
+    units: null,
+  }),
+  enable_upnp: sdk.Value.toggle({
+    name: 'Enable UPnP',
+    description:
+      '[network.enable_upnp] Request a NAT port mapping for inbound P2P connectivity.',
+    default: false,
+  }),
+  channel_handshake_seconds: sdk.Value.number({
+    name: 'Handshake Timeout (seconds)',
+    description:
+      '[network.channel_handshake_seconds] Time allowed for a peer handshake to complete.',
+    required: false,
+    default: null,
+    min: 1,
+    max: 600,
+    integer: true,
+    units: 's',
+  }),
+  channel_heartbeat_minutes: sdk.Value.number({
+    name: 'Heartbeat Interval (minutes)',
+    description:
+      '[network.channel_heartbeat_minutes] Idle-channel ping interval.',
+    required: false,
+    default: null,
+    min: 1,
+    max: 1440,
+    integer: true,
+    units: 'min',
+  }),
+  channel_inactivity_minutes: sdk.Value.number({
+    name: 'Inactivity Timeout (minutes)',
+    description:
+      '[network.channel_inactivity_minutes] Disconnect peers idle longer than this.',
+    required: false,
+    default: null,
+    min: 1,
+    max: 1440,
+    integer: true,
+    units: 'min',
+  }),
+  channel_expiration_minutes: sdk.Value.number({
+    name: 'Channel Expiration (minutes)',
+    description:
+      '[network.channel_expiration_minutes] Maximum lifetime of a peer channel before rotation.',
+    required: false,
+    default: null,
+    min: 1,
+    max: 10080,
+    integer: true,
+    units: 'min',
+  }),
+  hosts_file: sdk.Value.text({
+    name: 'Hosts File',
+    description:
+      '[network.hosts_file] Path to the peer-address cache file. Changing this is not recommended.',
+    required: false,
+    default: '/data/hosts.cache',
+  }),
+  user_agent: sdk.Value.text({
+    name: 'User Agent',
+    description:
+      '[network.user_agent] Override the user-agent string advertised to peers. Leave blank to use the default Knuth identifier.',
+    required: false,
+    default: null,
+  }),
+
+  // ── Database (LMDB) ───────────────────────────────────────────────────
+  db_max_size: sdk.Value.number({
+    name: 'LMDB Max Size (GB)',
+    description:
+      '[database.db_max_size] Maximum size of the LMDB blockchain database in gigabytes. Use 0 to let kth pick a default.',
+    required: false,
+    default: null,
+    min: 0,
+    max: 16000,
+    integer: true,
+    units: 'GB',
+  }),
+  reorg_pool_limit: sdk.Value.number({
+    name: 'Reorg Pool Limit',
+    description:
+      '[database.reorg_pool_limit] Maximum blocks kept in the reorg pool.',
+    required: false,
+    default: null,
+    min: 0,
+    max: 10000,
+    integer: true,
+    units: null,
+  }),
+  safe_mode: sdk.Value.toggle({
+    name: 'Database Safe Mode',
+    description:
+      '[database.safe_mode] Enable fsync after every write. Safer but slower.',
+    default: false,
+  }),
+  cache_capacity: sdk.Value.number({
+    name: 'Cache Capacity',
+    description:
+      '[database.cache_capacity] Number of block/tx entries kept in the in-memory cache.',
+    required: false,
+    default: null,
+    min: 0,
+    max: 1000000,
+    integer: true,
+    units: null,
+  }),
+
+  // ── Blockchain ────────────────────────────────────────────────────────
   blockchain_cores: sdk.Value.number({
     name: 'Blockchain Validation Cores',
     description:
-      'Number of CPU cores used for block validation. 0 = auto-detect.',
+      '[blockchain.cores] CPU cores used for block validation. 0 = auto-detect.',
     required: true,
     default: 0,
     min: 0,
@@ -156,16 +326,86 @@ export const fullConfigSpec = sdk.InputSpec.of({
     integer: true,
     units: null,
   }),
-  relay_transactions: sdk.Value.toggle({
-    name: 'Relay Transactions',
-    description: 'Relay unconfirmed transactions between peers.',
-    default: true,
-  }),
-  verbose_logging: sdk.Value.toggle({
-    name: 'Verbose Logging',
-    description: 'Write verbose-level entries to the debug log.',
+  blockchain_priority: sdk.Value.toggle({
+    name: 'High-Priority Validation',
+    description:
+      '[blockchain.priority] Give the validation thread pool elevated scheduling priority.',
     default: false,
   }),
+  use_libconsensus: sdk.Value.toggle({
+    name: 'Use libconsensus',
+    description:
+      '[blockchain.use_libconsensus] Use libconsensus for script validation (advanced).',
+    default: false,
+  }),
+
+  // ── Node ──────────────────────────────────────────────────────────────
+  relay_transactions: sdk.Value.toggle({
+    name: 'Relay Transactions',
+    description:
+      '[node.relay_transactions] Relay unconfirmed transactions between peers.',
+    default: true,
+  }),
+  refresh_transactions: sdk.Value.toggle({
+    name: 'Refresh Mempool',
+    description:
+      '[node.refresh_transactions] Refresh mempool transactions on new connections.',
+    default: true,
+  }),
+  compact_blocks_high_bandwidth: sdk.Value.toggle({
+    name: 'Compact Blocks (High-Bandwidth)',
+    description:
+      '[node.compact_blocks_high_bandwidth] Advertise high-bandwidth compact block relay to peers.',
+    default: false,
+  }),
+  block_poll_seconds: sdk.Value.number({
+    name: 'Block Poll Interval (seconds)',
+    description:
+      '[node.block_poll_seconds] How often the node polls peers for new blocks.',
+    required: false,
+    default: null,
+    min: 1,
+    max: 600,
+    integer: true,
+    units: 's',
+  }),
+  transaction_pool_capacity: sdk.Value.number({
+    name: 'Mempool Capacity',
+    description:
+      '[node.transaction_pool_capacity] Maximum number of transactions held in the mempool.',
+    required: false,
+    default: null,
+    min: 0,
+    max: 1_000_000,
+    integer: true,
+    units: null,
+  }),
+  ds_proofs_enabled: sdk.Value.toggle({
+    name: 'Double-Spend Proofs',
+    description:
+      '[node.ds_proofs_enabled] Accept and relay BCH double-spend proofs.',
+    default: true,
+  }),
+
+  // ── Logging ───────────────────────────────────────────────────────────
+  verbose_logging: sdk.Value.toggle({
+    name: 'Verbose Logging',
+    description: '[log.verbose] Write verbose-level entries to the debug log.',
+    default: false,
+  }),
+  log_rotation_size: sdk.Value.number({
+    name: 'Log Rotation Size (bytes)',
+    description:
+      '[log.rotation_size] Debug-log rotation size in bytes. Logs rotate into the archive directory when this size is reached.',
+    required: false,
+    default: 100_000_000,
+    min: 1_000_000,
+    max: 1_000_000_000,
+    integer: true,
+    units: 'B',
+  }),
+
+  // ── Tor / Clearnet (stored in store.json, not kth.cfg) ────────────────
   torEnabled: sdk.Value.toggle({
     name: 'Tor Routing (dependency advertisement)',
     description:
