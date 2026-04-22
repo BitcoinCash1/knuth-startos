@@ -48,8 +48,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
     })
   }
 
-  // Knuth CLI: `kth -c <config>`. The binary also accepts `--help` flag.
-  const kthArgs: string[] = ['-c', configPath]
+  // Knuth CLI: `kth -r -c <config>` initializes the LMDB blockchain database
+  // on first run (if directory is empty/invalid) and then starts the node in
+  // a single process. Equivalent to `--init_run`. See node-exe/src/main.cpp.
+  const kthArgs: string[] = ['-r', '-c', configPath]
 
   const kthSub = await sdk.SubContainer.of(
     effects,
