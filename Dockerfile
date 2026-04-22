@@ -3,7 +3,8 @@ FROM python:3.11-slim AS build
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        ca-certificates curl unzip git && \
+        ca-certificates curl unzip git \
+        build-essential cmake pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 # Conan + Knuth build helper
