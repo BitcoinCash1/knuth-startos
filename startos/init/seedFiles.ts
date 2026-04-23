@@ -22,7 +22,6 @@ export const seedFiles = sdk.setupOnInit(async (effects) => {
         threads: 2,
         inbound_connections: 125,
         outbound_connections: 8,
-        enable_upnp: true,
         hosts_file: hostsCachePath,
       },
       database: {
@@ -36,7 +35,7 @@ export const seedFiles = sdk.setupOnInit(async (effects) => {
         relay_transactions: true,
         refresh_transactions: true,
         compact_blocks_high_bandwidth: true,
-        ds_proofs_enabled: true,
+        ds_proofs: true,
       },
       log: {
         archive_directory: `${logDir}/archive`,

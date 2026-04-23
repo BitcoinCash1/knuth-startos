@@ -19,14 +19,40 @@ export const main = sdk.setupMain(async ({ effects }) => {
   // Force always-on node flags every boot so upgrades from older installs
   // (and manual edits) cannot disable transaction relay, mempool refresh,
   // double-spend proofs, or high-bandwidth compact blocks.
-  await kthCfg.merge(effects, {
-    node: {
+  // Sanitize kth.cfg: kth aborts on unknown keys ("unrecognised option ...").
+  // Older releases of this package wrote options that the kth binary does
+  // not accept (notably `network.enable_upnp` and `node.ds_proofs_enabled`).
+  // Strip those, rename the few we did get wrong, and enforce always-on
+  // node flags in one full rewrite.
+  {
+    const cur = ((await kthCfg.read().once()) ?? {}) as Record<
+      string,
+      Record<string, unknown>
+    >
+    const strip: Record<string, string[]> = {
+      network: ['enable_upnp', 'user_agent'],
+      blockchain: ['use_libconsensus', 'block_buffer_limit', 'first_boot_hard_ram'],
+      node: ['block_poll_seconds', 'transaction_pool_capacity'],
+      database: ['flush_writes'],
+    }
+    for (const [sect, keys] of Object.entries(strip)) {
+      if (cur[sect]) for (const k of keys) delete cur[sect][k]
+    }
+    // Rename node.ds_proofs_enabled -> node.ds_proofs.
+    if (cur.node && 'ds_proofs_enabled' in cur.node) {
+      if (cur.node.ds_proofs === undefined) cur.node.ds_proofs = cur.node.ds_proofs_enabled
+      delete cur.node.ds_proofs_enabled
+    }
+    // Always-on node flags.
+    cur.node = {
+      ...(cur.node ?? {}),
       relay_transactions: true,
       refresh_transactions: true,
       compact_blocks_high_bandwidth: true,
-      ds_proofs_enabled: true,
-    },
-  })
+      ds_proofs: true,
+    }
+    await kthCfg.write(effects, cur as never)
+  }
 
   const conf = await kthCfg.read().const(effects)
   const store = await storeJson.read().once()

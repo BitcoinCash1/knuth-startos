@@ -19,13 +19,11 @@ export const peersConfig = sdk.Action.withInput(
     manual_attempt_limit: true,
     connect_batch_size: true,
     host_pool_capacity: true,
-    enable_upnp: true,
     channel_handshake_seconds: true,
     channel_heartbeat_minutes: true,
     channel_inactivity_minutes: true,
     channel_expiration_minutes: true,
     hosts_file: true,
-    user_agent: true,
   }),
   async ({ effects: _effects }) => {
     const c = await kthCfg.read().once()
@@ -36,7 +34,6 @@ export const peersConfig = sdk.Action.withInput(
       manual_attempt_limit: c?.network?.manual_attempt_limit ?? null,
       connect_batch_size: c?.network?.connect_batch_size ?? null,
       host_pool_capacity: c?.network?.host_pool_capacity ?? null,
-      enable_upnp: c?.network?.enable_upnp ?? true,
       channel_handshake_seconds: c?.network?.channel_handshake_seconds ?? null,
       channel_heartbeat_minutes: c?.network?.channel_heartbeat_minutes ?? null,
       channel_inactivity_minutes:
@@ -44,7 +41,6 @@ export const peersConfig = sdk.Action.withInput(
       channel_expiration_minutes:
         c?.network?.channel_expiration_minutes ?? null,
       hosts_file: c?.network?.hosts_file ?? '/data/hosts.cache',
-      user_agent: c?.network?.user_agent ?? null,
     }
   },
   async ({ effects, input }) => {
@@ -62,7 +58,6 @@ export const peersConfig = sdk.Action.withInput(
         ...(input.host_pool_capacity != null && {
           host_pool_capacity: input.host_pool_capacity,
         }),
-        enable_upnp: input.enable_upnp,
         ...(input.channel_handshake_seconds != null && {
           channel_handshake_seconds: input.channel_handshake_seconds,
         }),
@@ -76,7 +71,6 @@ export const peersConfig = sdk.Action.withInput(
           channel_expiration_minutes: input.channel_expiration_minutes,
         }),
         ...(input.hosts_file && { hosts_file: input.hosts_file }),
-        ...(input.user_agent && { user_agent: input.user_agent }),
       },
     })
   },

@@ -39,7 +39,6 @@ Bitcoin Cash Daemon (`bchd`) instead.
   tip (derived from the `kth` debug log; Knuth does not expose an RPC height).
 - **Double-Spend Proofs (DSP)** — accepted and relayed (always on).
 - **Compact block relay (high-bandwidth)** — advertised by default.
-- **UPnP** — NAT port mapping for inbound P2P reachability (on by default).
 - **Tor (optional)** — inbound onion reachability via the StartOS Tor
   package. Note: Knuth does not natively consume a SOCKS proxy in this
   package; the Tor dependency currently only affects onion-inbound exposure.
@@ -86,12 +85,11 @@ grouped under **Configuration**:
 - **Network** — Select mainnet / chipnet / testnet4.
 - **Peers & Network** — Network threads, inbound/outbound peer counts,
   handshake / heartbeat / inactivity / expiration timers, host-pool capacity,
-  UPnP, hosts-cache file, user-agent override.
+  hosts-cache file.
 - **Node & Mempool Settings** — Validation cores, high-priority validation,
-  libconsensus toggle, compact-block high-bandwidth toggle, block-poll
-  interval, mempool capacity, LMDB max size, reorg-pool limit, database
-  safe-mode, cache capacity, verbose logging, log rotation size, Tor
-  advertisement, clearnet-inbound advertisement.
+  compact-block high-bandwidth toggle, LMDB max size, reorg-pool limit,
+  database safe-mode, cache capacity, verbose logging, log rotation size,
+  Tor advertisement, clearnet-inbound advertisement.
 - **Reindex Blockchain** — One-shot action that deletes the LMDB directory so
   the next start re-runs `kth`'s initchain.
 - **Delete Peers** — One-shot action that clears `hosts.cache` so Knuth
@@ -106,7 +104,7 @@ user toggle in the UI:
 |-------------------------------|-------|-------------------------------------------------------|
 | `node.relay_transactions`     | true  | Relay unconfirmed transactions (required for BCH).    |
 | `node.refresh_transactions`   | true  | Refresh mempool on new connections.                   |
-| `node.ds_proofs_enabled`      | true  | Accept and relay double-spend proofs.                 |
+| `node.ds_proofs`              | true  | Accept and relay double-spend proofs.                 |
 
 ## Dependencies
 

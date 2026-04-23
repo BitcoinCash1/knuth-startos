@@ -35,9 +35,7 @@ export const kthCfgShape = z
         channel_expiration_minutes: z.number().int().optional(),
         channel_germination_seconds: z.number().int().optional(),
         host_pool_capacity: z.number().int().optional(),
-        enable_upnp: z.boolean().optional(),
         hosts_file: z.string().optional(),
-        user_agent: z.string().optional(),
       })
       .optional(),
     database: z
@@ -53,9 +51,6 @@ export const kthCfgShape = z
       .object({
         cores: z.number().int().optional(),
         priority: z.boolean().optional(),
-        use_libconsensus: z.boolean().optional(),
-        block_buffer_limit: z.number().int().optional(),
-        first_boot_hard_ram: z.number().int().optional(),
       })
       .optional(),
     node: z
@@ -63,9 +58,7 @@ export const kthCfgShape = z
         relay_transactions: z.boolean().optional(),
         refresh_transactions: z.boolean().optional(),
         compact_blocks_high_bandwidth: z.boolean().optional(),
-        block_poll_seconds: z.number().int().optional(),
-        transaction_pool_capacity: z.number().int().optional(),
-        ds_proofs_enabled: z.boolean().optional(),
+        ds_proofs: z.boolean().optional(),
       })
       .optional(),
     log: z
@@ -208,12 +201,6 @@ export const fullConfigSpec = sdk.InputSpec.of({
     integer: true,
     units: null,
   }),
-  enable_upnp: sdk.Value.toggle({
-    name: 'Enable UPnP',
-    description:
-      '[network.enable_upnp] Request a NAT port mapping for inbound P2P connectivity.',
-    default: true,
-  }),
   channel_handshake_seconds: sdk.Value.number({
     name: 'Handshake Timeout (seconds)',
     description:
@@ -264,13 +251,6 @@ export const fullConfigSpec = sdk.InputSpec.of({
       '[network.hosts_file] Path to the peer-address cache file. Changing this is not recommended.',
     required: false,
     default: '/data/hosts.cache',
-  }),
-  user_agent: sdk.Value.text({
-    name: 'User Agent',
-    description:
-      '[network.user_agent] Override the user-agent string advertised to peers. Leave blank to use the default Knuth identifier.',
-    required: false,
-    default: null,
   }),
 
   // ── Database (LMDB) ───────────────────────────────────────────────────
@@ -332,12 +312,6 @@ export const fullConfigSpec = sdk.InputSpec.of({
       '[blockchain.priority] Give the validation thread pool elevated scheduling priority.',
     default: true,
   }),
-  use_libconsensus: sdk.Value.toggle({
-    name: 'Use libconsensus',
-    description:
-      '[blockchain.use_libconsensus] Use libconsensus for script validation (advanced).',
-    default: false,
-  }),
 
   // ── Node ──────────────────────────────────────────────────────────────
   relay_transactions: sdk.Value.toggle({
@@ -356,34 +330,6 @@ export const fullConfigSpec = sdk.InputSpec.of({
     name: 'Compact Blocks (High-Bandwidth)',
     description:
       '[node.compact_blocks_high_bandwidth] Advertise high-bandwidth compact block relay to peers.',
-    default: true,
-  }),
-  block_poll_seconds: sdk.Value.number({
-    name: 'Block Poll Interval (seconds)',
-    description:
-      '[node.block_poll_seconds] How often the node polls peers for new blocks.',
-    required: false,
-    default: null,
-    min: 1,
-    max: 600,
-    integer: true,
-    units: 's',
-  }),
-  transaction_pool_capacity: sdk.Value.number({
-    name: 'Mempool Capacity',
-    description:
-      '[node.transaction_pool_capacity] Maximum number of transactions held in the mempool.',
-    required: false,
-    default: null,
-    min: 0,
-    max: 1_000_000,
-    integer: true,
-    units: null,
-  }),
-  ds_proofs_enabled: sdk.Value.toggle({
-    name: 'Double-Spend Proofs',
-    description:
-      '[node.ds_proofs_enabled] Accept and relay BCH double-spend proofs.',
     default: true,
   }),
 

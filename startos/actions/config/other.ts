@@ -16,10 +16,7 @@ export const otherConfig = sdk.Action.withInput(
   fullConfigSpec.filter({
     blockchain_cores: true,
     blockchain_priority: true,
-    use_libconsensus: true,
     compact_blocks_high_bandwidth: true,
-    block_poll_seconds: true,
-    transaction_pool_capacity: true,
     db_max_size: true,
     reorg_pool_limit: true,
     safe_mode: true,
@@ -37,11 +34,8 @@ export const otherConfig = sdk.Action.withInput(
     return {
       blockchain_cores: c?.blockchain?.cores ?? 0,
       blockchain_priority: c?.blockchain?.priority ?? true,
-      use_libconsensus: c?.blockchain?.use_libconsensus ?? false,
       compact_blocks_high_bandwidth:
         c?.node?.compact_blocks_high_bandwidth ?? true,
-      block_poll_seconds: c?.node?.block_poll_seconds ?? null,
-      transaction_pool_capacity: c?.node?.transaction_pool_capacity ?? null,
       db_max_size: c?.database?.db_max_size ?? null,
       reorg_pool_limit: c?.database?.reorg_pool_limit ?? null,
       safe_mode: c?.database?.safe_mode ?? false,
@@ -58,19 +52,12 @@ export const otherConfig = sdk.Action.withInput(
         blockchain: {
           cores: input.blockchain_cores,
           priority: input.blockchain_priority,
-          use_libconsensus: input.use_libconsensus,
         },
         node: {
           relay_transactions: true,
           refresh_transactions: true,
           compact_blocks_high_bandwidth: input.compact_blocks_high_bandwidth,
-          ...(input.block_poll_seconds != null && {
-            block_poll_seconds: input.block_poll_seconds,
-          }),
-          ...(input.transaction_pool_capacity != null && {
-            transaction_pool_capacity: input.transaction_pool_capacity,
-          }),
-          ds_proofs_enabled: true,
+          ds_proofs: true,
         },
         database: {
           ...(input.db_max_size != null && { db_max_size: input.db_max_size }),

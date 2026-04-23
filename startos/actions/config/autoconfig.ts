@@ -46,26 +46,21 @@ export const autoconfig = sdk.Action.withInput(
       'manual_attempt_limit',
       'connect_batch_size',
       'host_pool_capacity',
-      'enable_upnp',
       'channel_handshake_seconds',
       'channel_heartbeat_minutes',
       'channel_inactivity_minutes',
       'channel_expiration_minutes',
       'hosts_file',
-      'user_agent',
     ] as const
     const blockchainMap: Record<string, string> = {
       blockchain_cores: 'cores',
       blockchain_priority: 'priority',
-      use_libconsensus: 'use_libconsensus',
     }
     const nodeKeys = [
       'relay_transactions',
       'refresh_transactions',
       'compact_blocks_high_bandwidth',
-      'block_poll_seconds',
-      'transaction_pool_capacity',
-      'ds_proofs_enabled',
+      'ds_proofs',
     ] as const
     const dbKeys = [
       'db_max_size',
