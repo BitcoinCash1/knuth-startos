@@ -62,11 +62,11 @@ CI publishes signed `.s9pk` files for:
 
 | Arch     | Runner                |                                                               |
 |----------|-----------------------|--------------------------------------------------------------------|
-| x86_64   | `ubuntu-24.04`        | Uses upstream Knuth Conan prebuilts (fast).                        |
-| aarch64  | `ubuntu-24.04-arm`    | `lmdb`, `openssl`, `kth` from source. |
+| x86_64   | `ubuntu-24.04`        |                      |
+| aarch64  | `ubuntu-24.04-arm`    |
 | riscv64  | `ubuntu-24.04` + QEMU 
 
-`emulateMissingAs: x86_64` is set as a runtime fallback.
+
 
 ## Building from Source
 
