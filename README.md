@@ -60,11 +60,11 @@ There are no RPC, ZMQ, or HTTP ports — Knuth is P2P-only in this package.
 
 CI publishes signed `.s9pk` files for:
 
-| Arch     | Runner                | Notes                                                              |
+| Arch     | Runner                |                                                               |
 |----------|-----------------------|--------------------------------------------------------------------|
 | x86_64   | `ubuntu-24.04`        | Uses upstream Knuth Conan prebuilts (fast).                        |
-| aarch64  | `ubuntu-24.04-arm`    | No upstream prebuilts — builds `boost`, `lmdb`, `openssl`, `kth` from source. |
-| riscv64  | `ubuntu-24.04` + QEMU | Experimental. Full source build under emulation; may exceed the 6-hour GitHub job limit. Marked non-blocking so a failing riscv64 job does not gate the other two. |
+| aarch64  | `ubuntu-24.04-arm`    | `lmdb`, `openssl`, `kth` from source. |
+| riscv64  | `ubuntu-24.04` + QEMU 
 
 `emulateMissingAs: x86_64` is set as a runtime fallback.
 
